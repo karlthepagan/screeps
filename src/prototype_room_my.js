@@ -201,8 +201,14 @@ Room.prototype.handleScout = function() {
 };
 
 Room.prototype.checkNeedHelp = function() {
+<<<<<<< HEAD
 
   let needHelp = this.memory.energyAvailableSum < config.carryHelpers.needTreshold * config.carryHelpers.ticksUntilHelpCheck; //&& !this.hostile;
+=======
+  let spawn = Game.rooms[this.name].find(STRUCTURE_SPAWN);
+  let needHelp = this.memory.energyAvailableSum < config.carryHelpers.needTreshold * config.carryHelpers.ticksUntilHelpCheck &&
+    !this.hostile && spawn && spawn.my;
+>>>>>>> 7d3b3e4... Master branch with last hepers version
   let oldNeedHelp = this.memory.needHelp;
   if (needHelp) {
     if (!oldNeedHelp) {
@@ -212,6 +218,7 @@ Room.prototype.checkNeedHelp = function() {
       return '---!!!---' + this.name + ' need energy ---!!!---';
     }
     return 'Already set as needHelp';
+<<<<<<< HEAD
   }
   if (oldNeedHelp) {
     this.memory.energyAvailableSum = 0;
@@ -229,7 +236,7 @@ Room.prototype.checkCanHelp = function() {
   }
 
   let nearestRoom = this.memory.nearestRoom;
-  if (!nearestRoom || !Memory.rooms[nearestRoom].needHelp) {
+  if (!nearestRoom || !Memory.rooms[nearestRoom] || !Memory.rooms[nearestRoom].needHelp) {
     nearestRoom = this.nearestRoomName(Memory.needEnergyRooms, config.carryHelpers.maxDistance);
     this.memory.nearestRoom = nearestRoom;
   }
@@ -255,6 +262,47 @@ Room.prototype.checkForEnergyTransfer = function() {
   Memory.needEnergyRooms = Memory.needEnergyRooms || [];
   this.memory.energyAvailableSum = this.memory.energyAvailableSum || 0;
 
+=======
+  }
+  if (oldNeedHelp) {
+    this.memory.energyAvailableSum = 0;
+    _.remove(Memory.needEnergyRooms, (r) => r === this.name);
+    delete Memory.rooms[this.name].needHelp;
+    return '---!!!---' + this.name + ' no more need help ---!!!---';
+  }
+  return;
+
+};
+Room.prototype.checkCanHelp = function(targetName) {
+  if (!Memory.needEnergyRooms) { return; }
+
+  let nearestRoom = this.memory.nearestRoom;
+  if (!nearestRoom || !Memory.rooms[nearestRoom].needHelp) {
+    nearestRoom = this.nearestRoomName(Memory.needEnergyRooms, config.carryHelpers.maxDistance);
+    this.memory.nearestRoom = nearestRoom;
+  }
+  if (!Game.rooms[nearestRoom] || !Memory.rooms[nearestRoom].needHelp) {
+    _.remove(Memory.needEnergyRooms, (r) => r === nearestRoom);
+  }
+
+  let canHelp = this.memory.energyAvailableSum > config.carryHelpers.helpTreshold * config.carryHelpers.ticksUntilHelpCheck &&
+    targetName !== this.name && Game.rooms[targetName] && this.storage &&
+    !Game.rooms[targetName].hostile && !this.terminal;
+  if (canHelp) {
+    this.checkRoleToSpawn('carry', config.carryHelpers.maxHelpersAmount, this.storage.id,
+      this.name, undefined, targetName);
+    this.memory.energyAvailableSum = 0;
+    return '---!!! ' + this.name + ' send energy to: ' + targetName + ' !!!---';
+  }
+  return 'no';
+
+};
+
+Room.prototype.checkForEnergyTransfer = function() {
+  Memory.needEnergyRooms = Memory.needEnergyRooms || [];
+  this.memory.energyAvailableSum = this.memory.energyAvailableSum || 0;
+
+>>>>>>> 7d3b3e4... Master branch with last hepers version
   if (Game.time % config.carryHelpers.ticksUntilHelpCheck) {
     let factor = config.carryHelpers.factor;
     this.memory.energyAvailable = (1 - factor) * this.memory.energyAvailable + (factor) * this.energyAvailable || 0;
@@ -263,6 +311,7 @@ Room.prototype.checkForEnergyTransfer = function() {
   }
   let needHelp = this.checkNeedHelp();
   if (needHelp) {
+<<<<<<< HEAD
     if (needHelp !== 'Already set as needHelp') {
       this.log(needHelp);
     }
@@ -271,6 +320,12 @@ Room.prototype.checkForEnergyTransfer = function() {
     if (canHelp !== 'no') {
       this.log(canHelp);
     }
+=======
+    if (needHelp !== 'Already set as needHelp') { this.log(needHelp); }
+  } else {
+    let canHelp = this.checkCanHelp();
+    if (canHelp !== 'no') { this.log(canHelp); }
+>>>>>>> 7d3b3e4... Master branch with last hepers version
   }
   this.memory.energyAvailableSum = 0;
 };
@@ -322,8 +377,6 @@ Room.prototype.executeRoom = function() {
 
   var creepsInRoom = this.find(FIND_MY_CREEPS);
   var spawn;
-
-  var creepsConfig = [];
   if (!building) {
     let amount = 1;
     if (!room.storage) {
@@ -386,10 +439,8 @@ Room.prototype.executeRoom = function() {
       var defender = {
         role: 'defendranged'
       };
-      creepsConfig.push('defendranged');
       if (this.memory.attackTimer > 300) {
         defender.role = 'defendmelee';
-        creepsConfig.push('defendmelee');
       }
       if (Game.time % 250 === 0 && !this.inQueue(defender)) {
         this.memory.queue.push(defender);
@@ -432,7 +483,6 @@ Room.prototype.executeRoom = function() {
   });
   if (constructionSites.length > 0) {
     let amount = 1;
-    creepsConfig.push('planer');
     for (let cs of constructionSites) {
       if (cs.structureType == STRUCTURE_STORAGE) {
         amount = 3;
@@ -488,30 +538,9 @@ Room.prototype.executeRoom = function() {
   this.handleTerminal();
   this.handleNukeAttack();
 
-  var creep;
-  var creep_index;
-
-  for (var creep_name in creepsInRoom) {
-    creep = creepsInRoom[creep_name];
-    creep_index = creepsConfig.indexOf(creep.memory.role);
-    if (creep_index != -1) {
-      creepsConfig.splice(creep_index, 1);
+  if (Game.time % 10 === 0) {
+    this.spawnCheckForCreate();
     }
-  }
-
-  for (var spawn_name in spawns) {
-    spawn = spawns[spawn_name];
-    if (!spawn.spawning || spawn.spawning === null) {
-      continue;
-    }
-
-    creep = Game.creeps[spawn.spawning.name];
-    creep_index = creepsConfig.indexOf(creep.memory.role);
-    if (creep_index != -1) {
-      creepsConfig.splice(creep_index, 1);
-    }
-  }
-  this.spawnCheckForCreate(creepsConfig);
 
   this.handleMarket();
   brain.stats.addRoom(this.name, cpuUsed);

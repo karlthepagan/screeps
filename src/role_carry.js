@@ -15,6 +15,12 @@ roles.carry.flee = true;
 
 roles.carry.boostActions = ['capacity'];
 
+roles.carry.settings = {
+  prefixParts: 'WMC',
+  layout: 'MC',
+  amount: [1, 2]
+};
+
 roles.carry.preMove = function(creep, directions) {
   // Misplaced spawn
   // TODO Somehow ugly and maybe better somewhere else
@@ -187,25 +193,6 @@ roles.carry.action = function(creep) {
   creep.memory.routing.reverse = true;
 
   return true;
-};
-
-roles.carry.getPartConfig = function(room, energy, heal) {
-  var parts = [MOVE, CARRY, CARRY];
-
-  let partConfig = room.getPartConfig(energy - 150, parts);
-  partConfig.unshift(WORK);
-  partConfig.unshift(MOVE);
-
-  return partConfig;
-};
-
-roles.carry.energyRequired = function(room) {
-  // TODO make the factor dependent on e.g. room.storage or waiting duration in queue
-  return Math.max(250, Math.min(room.controller.level * config.carry.size, room.getEnergyCapacityAvailable()));
-};
-
-roles.carry.energyBuild = function(room, energy) {
-  return Math.max(250, Math.min(room.controller.level * config.carry.size, room.getEnergyCapacityAvailable()));
 };
 
 roles.carry.execute = function(creep) {

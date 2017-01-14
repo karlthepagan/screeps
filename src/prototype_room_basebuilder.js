@@ -119,7 +119,7 @@ Room.prototype.destroyStructure = function(structure) {
           }
         }
       }
-      this.memory.costMatrix.base = costMatrixBase.serialize();
+      this.setMemoryCostMatrix(costMatrixBase);
     }
   }
   return false;

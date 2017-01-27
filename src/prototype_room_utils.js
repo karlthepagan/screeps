@@ -191,22 +191,6 @@ Room.prototype.checkRoleToSpawn = function(role, amount, targetId, targetRoom, l
   this.memory.queue.push(creepMemory);
 };
 
-Room.prototype.getPartConfig = function(energy, parts) {
-  var sum = 0;
-  var i = 0;
-  var partConfig = [];
-  while (sum < energy && partConfig.length < 50) {
-    var part = parts[i % parts.length];
-    if (sum + BODYPART_COST[part] <= energy) {
-      partConfig.push(part);
-      sum += BODYPART_COST[part];
-      i += 1;
-    } else {
-      break;
-    }
-  }
-  return partConfig;
-};
 Room.pathToString = function(path) {
   if (!config.performance.serializePath) {
     return path;

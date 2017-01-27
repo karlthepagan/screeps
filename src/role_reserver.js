@@ -21,7 +21,7 @@ roles.reserver.checkLevel = function(room, creep) {
   let level = creep.level ? creep.level : 1;
   if (level === 5) {
     room.log('Build super reserver');
-    return {amount: [5,5]};
+    return {amount: [5, 5]};
   }
 };
 

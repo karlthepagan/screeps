@@ -286,7 +286,7 @@ Room.prototype.spawnCreateCreep = function(creep) {
   if (spawns.length === 0) { return; }
   let role = creep.role;
   var energy = this.energyAvailable;
-  
+
   let unit = roles[role];
   if (!unit) {
     this.log('Can not find role: ' + role + ' creep_' + role);
@@ -320,7 +320,7 @@ Room.prototype.spawnCreateCreep = function(creep) {
       routing: creep.routing
     };
     let returnCode = spawn.createCreep(partConfig, name, memory);
-	
+
     if (returnCode != name) {
       continue;
     }

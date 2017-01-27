@@ -75,16 +75,6 @@ global.config = {
     helpTreshold: 1500,
     needTreshold: 750,
     maxDistance: 7,
-    factor: 0.2,
-    minDowngradPercent: 90
-  },
-
-  carryHelpers: {
-    ticksUntilHelpCheck: 100,
-    maxHelpersAmount: 5,
-    helpTreshold: 1500,
-    needTreshold: 750,
-    maxDistance: 7,
     factor: 0.2
   },
 

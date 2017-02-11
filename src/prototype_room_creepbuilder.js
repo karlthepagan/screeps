@@ -46,11 +46,13 @@ Room.prototype.spawnCheckForCreate = function() {
 Room.prototype.inQueue = function(creepMemory) {
   this.memory.queue = this.memory.queue || [];
   for (var item of this.memory.queue) {
-    if (!item.routing) {continue;}
-    let creepTarget = {targetId: item.routing.targetId,
-      targetRoom: item.routing.targetRoom};
+    if (!item.routing) { continue; }
+    let creepTarget = {
+      targetId: item.routing.targetId,
+      targetRoom: item.routing.targetRoom
+    };
     let found = _.eq(creepMemory.routing, creepTarget) && creepMemory.role === item.role;
-    if (found) {return true;}
+    if (found) { return true; }
   }
   return false;
 };
@@ -79,17 +81,19 @@ Room.prototype.checkRoleToSpawn = function(role, amount, targetId, targetRoom, l
       targetId: targetId
     }
   };
-  if (this.inQueue(creepMemory)) {return false;}
+  if (this.inQueue(creepMemory)) { return false; }
   let creeps = this.find(FIND_MY_CREEPS);
   let spawns = this.find(FIND_MY_SPAWNS);
   for (let spawn of spawns) {
-    if (!spawn.spawning) {continue;}
+    if (!spawn.spawning) { continue; }
     creeps.push(Game.creeps[spawn.spawning.name]);
   }
   creeps = _.filter(creeps, creep => {
-    if (!creep.memory.routing) {return false;}
-    let creepTarget = {targetId: creep.memory.routing.targetId,
-      targetRoom: creep.memory.routing.targetRoom};
+    if (!creep.memory.routing) { return false; }
+    let creepTarget = {
+      targetId: creep.memory.routing.targetId,
+      targetRoom: creep.memory.routing.targetRoom
+    };
     return _.eq(creepMemory.routing, creepTarget) && role === creep.memory.role;
   });
   if (creeps.length < amount) {
@@ -111,7 +115,11 @@ Room.prototype.checkRoleToSpawn = function(role, amount, targetId, targetRoom, l
  */
 
 Room.prototype.getPartsStringDatas = function(parts, energyAvailable) {
-  if (!_.isString(parts) || parts === '') { return {null: true}; }
+  if (!_.isString(parts) || parts === '') {
+    return {
+      null: true
+    };
+  }
   let ret = {};
   Memory.layoutsCost = Memory.layoutsCost || {};
   ret.cost = Memory.layoutsCost[parts] || 0;
@@ -230,11 +238,11 @@ Room.prototype.getPartConfig = function(creep) {
   if (sufixString) { maxBodyLength -= sufixString.length; }
 
   let prefix = this.getPartsStringDatas(prefixString, energyAvailable);
-  if (prefix.fail) {return ;}
+  if (prefix.fail) { return; }
   energyAvailable -= prefix.cost || 0;
   layoutString = this.applyAmount(layoutString, amount);
   let layout = this.getPartsStringDatas(layoutString, energyAvailable);
-  if (layout.fail) {return ;}
+  if (layout.fail) { return; }
   let parts = prefix.parts || [];
   let maxRepeat = Math.floor(Math.min(energyAvailable / layout.cost, maxBodyLength / layout.len));
   if (maxLayoutAmount) {
@@ -276,7 +284,7 @@ Room.prototype.spawnCreateCreep = function(creep) {
   var name = role + '-' + id;
   //console.log(this.name,'--->',role);
   var partConfig = this.getPartConfig(creep);
-  if (!partConfig) {return;}
+  if (!partConfig) { return; }
   let memory = {
     role: role,
     number: id,

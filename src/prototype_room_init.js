@@ -67,7 +67,6 @@ Room.prototype.initSetStorageAndPathStart = function() {
 };
 
 Room.prototype.updatePosition = function() {
-  this.log('Update position');
   cache.rooms[this.name] = {};
   delete this.memory.routing;
 
@@ -306,6 +305,39 @@ function setStructures(room, path, costMatrixBase) {
   return -1;
 }
 
+Room.prototype.costMatrixSetMineralPath = function() {
+  let costMatrix = this.getMemoryCostMatrix();
+  // TODO which first minerals or sources? Maybe order by length of path
+  let minerals = this.find(FIND_MINERALS);
+  for (let mineral of minerals) {
+    let route = [{
+      room: this.name
+    }];
+    let path = this.getPath(route, 0, 'pathStart', mineral.id, true);
+    for (let pos of path) {
+      costMatrix.set(pos.x, pos.y, config.layout.pathAvoid);
+    }
+    this.setMemoryCostMatrix(costMatrix);
+  }
+};
+
+Room.prototype.costMatrixPathFromStartToExit = function(exits) {
+  let costMatrix = this.getMemoryCostMatrix();
+  for (let endDir in exits) {
+    let end = exits[endDir];
+    let route = [{
+      room: this.name
+    }, {
+      room: end
+    }];
+    let path = this.getPath(route, 0, 'pathStart', undefined, true);
+    for (let pos of path) {
+      costMatrix.set(pos.x, pos.y, config.layout.pathAvoid);
+    }
+    this.setMemoryCostMatrix(costMatrix);
+  }
+};
+
 Room.prototype.buildCostMatrix = function() {
   this.deleteMemoryPaths();
   this.memory.costMatrix = {};
@@ -316,33 +348,8 @@ Room.prototype.buildCostMatrix = function() {
 
   let exits = Game.map.describeExits(this.name);
   if (this.controller) {
-    // TODO which first minerals or sources? Maybe order by length of path
-    let minerals = this.find(FIND_MINERALS);
-    for (let mineral of minerals) {
-      let route = [{
-        room: this.name
-      }];
-      let path = this.getPath(route, 0, 'pathStart', mineral.id, true);
-      for (let pos of path) {
-        costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
-      }
-      this.setMemoryCostMatrix(costMatrixBase);
-    }
-
-    for (let endDir in exits) {
-      let end = exits[endDir];
-      let route = [{
-        room: this.name
-      }, {
-        room: end
-      }];
-      let path = this.getPath(route, 0, 'pathStart', undefined, true);
-      for (let pos of path) {
-        costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
-      }
-      this.setMemoryCostMatrix(costMatrixBase);
-    }
-    return costMatrixBase;
+    this.costMatrixSetMineralPath();
+    this.costMatrixPathFromStartToExit(exits);
   }
 
   for (let startDir in exits) {

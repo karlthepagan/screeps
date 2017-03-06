@@ -1,5 +1,120 @@
 'use strict';
 
+Room.prototype.initSetController = function() {
+  if (this.controller) {
+    let costMatrix = this.getMemoryCostMatrix();
+    let upgraderPos = this.controller.pos.findNearPosition().next().value;
+    this.memory.position.creep[this.controller.id] = upgraderPos;
+    costMatrix.set(upgraderPos.x, upgraderPos.y, config.layout.creepAvoid);
+    this.setMemoryCostMatrix(costMatrix);
+  }
+};
+
+Room.prototype.initSetSources = function() {
+  let sources = this.find(FIND_SOURCES);
+  let costMatrix = this.getMemoryCostMatrix();
+  for (let source of sources) {
+    let sourcer = source.pos.findNearPosition().next().value;
+    this.memory.position.creep[source.id] = sourcer;
+    // TODO E.g. E11S8 it happens that sourcer has no position
+    if (sourcer) {
+      let link = sourcer.findNearPosition().next().value;
+      this.memory.position.structure.link.push(link);
+      costMatrix.set(link.x, link.y, config.layout.structureAvoid);
+      this.setMemoryCostMatrix(costMatrix);
+    }
+  }
+};
+
+Room.prototype.initSetMinerals = function() {
+  let costMatrix = this.getMemoryCostMatrix();
+  let minerals = this.find(FIND_MINERALS);
+  for (let mineral of minerals) {
+    let extractor = mineral.pos.findNearPosition().next().value;
+    this.memory.position.creep[mineral.id] = extractor;
+    this.memory.position.structure.extractor.push(mineral.pos);
+    costMatrix.set(extractor.x, extractor.y, config.layout.creepAvoid);
+    this.setMemoryCostMatrix(costMatrix);
+  }
+};
+
+Room.prototype.updatePosition = function() {
+  this.log('Update position');
+  cache.rooms[this.name] = {};
+  delete this.memory.routing;
+
+  let costMatrixBase = this.getCostMatrix();
+  this.setMemoryCostMatrix(costMatrixBase);
+  this.memory.position = {
+    creep: {}
+  };
+  this.memory.position.structure = {
+    storage: [],
+    spawn: [],
+    extension: [],
+    tower: [],
+    link: [],
+    observer: [],
+    lab: [],
+    terminal: [],
+    nuker: [],
+    powerSpawn: [],
+    extractor: []
+  };
+
+  this.initSetController();
+  this.initSetSources();
+  this.initSetMinerals();
+
+  if (this.controller) {
+    let storagePos = this.memory.position.creep[this.controller.id].findNearPosition().next().value;
+    this.memory.position.structure.storage.push(storagePos);
+    // TODO should also be done for the other structures
+    costMatrixBase.set(storagePos.x, storagePos.y, config.layout.structureAvoid);
+    this.setMemoryCostMatrix(costMatrixBase);
+
+    this.memory.position.creep.pathStart = storagePos.findNearPosition().next().value;
+
+    let route = [{
+      room: this.name
+    }];
+    let pathUpgrader = this.getPath(route, 0, 'pathStart', this.controller.id, true);
+    // TODO exclude the last position (creepAvoid) in all paths
+    for (let pos of pathUpgrader) {
+      if (this.memory.position.creep[this.controller.id].isEqualTo(pos.x, pos.y)) {
+        continue;
+      }
+      costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
+    }
+    this.setMemoryCostMatrix(costMatrixBase);
+
+    let sources = this.find(FIND_SOURCES);
+    for (let source of sources) {
+      let route = [{
+        room: this.name
+      }];
+      let path = this.getPath(route, 0, 'pathStart', source.id, true);
+      for (let pos of path) {
+        let posObject = new RoomPosition(pos.x, pos.y, this.name);
+        let sourcer = this.memory.position.creep[source.id];
+        if (posObject.isEqualTo(sourcer.x, sourcer.y)) {
+          continue;
+        }
+
+        costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
+      }
+      let sourcer = this.memory.position.creep[source.id];
+      costMatrixBase.set(sourcer.x, sourcer.y, config.layout.creepAvoid);
+      this.setMemoryCostMatrix(costMatrixBase);
+    }
+
+    this.setFillerArea(storagePos, costMatrixBase, route);
+  }
+
+  this.setMemoryCostMatrix(costMatrixBase);
+  return costMatrixBase;
+};
+
 Room.prototype.setTowerFiller = function() {
   let exits = _.map(Game.map.describeExits(this.name));
   this.memory.position.creep.towerfiller = [];

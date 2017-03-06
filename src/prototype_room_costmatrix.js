@@ -71,7 +71,6 @@ Room.prototype.getAvoids = function(target, inRoom) {
 
   let room = this;
   let callback = (roomName) => {
-    let costMatrix = PathFinder.CostMatrix.deserialize(room.memory.costMatrix.base);
     if (target && target.pos) {
       costMatrix.set(target.pos.x, target.pos.y, 0);
     }
@@ -84,7 +83,7 @@ Room.prototype.getAvoids = function(target, inRoom) {
     // Noobie walls
     let walls = room.find(FIND_STRUCTURES, {
       filter: function(object) {
-        if (object.structureType == STRUCTURE_WALL && !object.hits) {
+        if (object.structureType === STRUCTURE_WALL && !object.hits) {
           return true;
         }
         return false;
@@ -97,7 +96,7 @@ Room.prototype.getAvoids = function(target, inRoom) {
     if (target && target.scout) {
       let structures = room.find(FIND_STRUCTURES, {
         filter: function(object) {
-          if (object.structureType == STRUCTURE_WALL) {
+          if (object.structureType === STRUCTURE_WALL) {
             return true;
           }
           return false;

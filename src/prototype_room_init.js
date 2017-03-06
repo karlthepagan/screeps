@@ -2,7 +2,6 @@
 
 Room.prototype.setTowerFiller = function() {
   let exits = _.map(Game.map.describeExits(this.name));
-
   this.memory.position.creep.towerfiller = [];
 
   for (let index = 0; index < CONTROLLER_STRUCTURES.tower[8] - 1; index++) {

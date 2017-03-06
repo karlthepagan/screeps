@@ -308,28 +308,11 @@ function setStructures(room, path, costMatrixBase) {
 
 Room.prototype.buildCostMatrix = function() {
   this.deleteMemoryPaths();
-
   this.memory.costMatrix = {};
 
   // TODO adapt updatePosition => init Position and set the costmatrix
   this.log('buildCostMatrix');
   let costMatrixBase = this.updatePosition();
-
-  for (let id in this.memory.position.creep) {
-    let pos = this.memory.position.creep[id];
-    costMatrixBase.set(pos.x, pos.y, config.layout.creepAvoid);
-  }
-  for (let id in this.memory.position.structure) {
-    let poss = this.memory.position.structure[id];
-    for (let pos of poss) {
-      if (!pos) {
-        this.log('costmatrix.buildCostMatrix not pos: ' + id + ' ' + JSON.stringify(poss));
-        continue;
-      }
-      costMatrixBase.set(pos.x, pos.y, 0xFF);
-    }
-  }
-  this.setMemoryCostMatrix(costMatrixBase);
 
   let exits = Game.map.describeExits(this.name);
   if (this.controller) {

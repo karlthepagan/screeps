@@ -9,7 +9,7 @@ Room.prototype.getCostMatrixCallback = function(end, excludeStructures) {
   }
 
   let room = this;
-  let callbackInner = function(roomName) {
+  let callbackInner = (roomName) => {
     let costMatrix = room.getMemoryCostMatrix();
     // TODO the ramparts could be within existing walls (at least when converging to the newmovesim
     if (end) {
@@ -18,20 +18,7 @@ Room.prototype.getCostMatrixCallback = function(end, excludeStructures) {
 
     if (excludeStructures) {
       // TODO excluding structures, for the case where the spawn is in the wrong spot (I guess this can be handled better)
-      let structures = room.find(FIND_STRUCTURES, {
-        filter: function(object) {
-          if (object.structureType == STRUCTURE_RAMPART) {
-            return false;
-          }
-          if (object.structureType == STRUCTURE_ROAD) {
-            return false;
-          }
-          if (object.structureType == STRUCTURE_CONTAINER) {
-            return false;
-          }
-          return true;
-        }
-      });
+      let structures = room.findPropertyFilter(FIND_STRUCTURES, 'structureType', [STRUCTURE_RAMPART, STRUCTURE_ROAD, STRUCTURE_CONTAINER], true);
       for (let structure of structures) {
         costMatrix.set(structure.pos.x, structure.pos.y, config.layout.structureAvoid);
       }

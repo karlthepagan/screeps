@@ -297,58 +297,58 @@ function setStructures(room, path, costMatrixBase) {
   return -1;
 }
 
-let buildCostMatrix = function(room) {
-  room.deleteMemoryPaths();
+Room.prototype.buildCostMatrix = function() {
+  this.deleteMemoryPaths();
 
-  room.memory.costMatrix = {};
+  this.memory.costMatrix = {};
 
   // TODO adapt updatePosition => init Position and set the costmatrix
-  room.log('buildCostMatrix');
-  let costMatrixBase = room.updatePosition();
+  this.log('buildCostMatrix');
+  let costMatrixBase = this.updatePosition();
 
-  for (let id in room.memory.position.creep) {
-    let pos = room.memory.position.creep[id];
+  for (let id in this.memory.position.creep) {
+    let pos = this.memory.position.creep[id];
     costMatrixBase.set(pos.x, pos.y, config.layout.creepAvoid);
   }
-  for (let id in room.memory.position.structure) {
-    let poss = room.memory.position.structure[id];
+  for (let id in this.memory.position.structure) {
+    let poss = this.memory.position.structure[id];
     for (let pos of poss) {
       if (!pos) {
-        room.log('costmatrix.buildCostMatrix not pos: ' + id + ' ' + JSON.stringify(poss));
+        this.log('costmatrix.buildCostMatrix not pos: ' + id + ' ' + JSON.stringify(poss));
         continue;
       }
       costMatrixBase.set(pos.x, pos.y, 0xFF);
     }
   }
-  room.setMemoryCostMatrix(costMatrixBase);
+  this.setMemoryCostMatrix(costMatrixBase);
 
-  let exits = Game.map.describeExits(room.name);
-  if (room.controller) {
+  let exits = Game.map.describeExits(this.name);
+  if (this.controller) {
     // TODO which first minerals or sources? Maybe order by length of path
-    let minerals = room.find(FIND_MINERALS);
+    let minerals = this.find(FIND_MINERALS);
     for (let mineral of minerals) {
       let route = [{
-        room: room.name
+        room: this.name
       }];
-      let path = room.getPath(route, 0, 'pathStart', mineral.id, true);
+      let path = this.getPath(route, 0, 'pathStart', mineral.id, true);
       for (let pos of path) {
         costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
       }
-      room.setMemoryCostMatrix(costMatrixBase);
+      this.setMemoryCostMatrix(costMatrixBase);
     }
 
     for (let endDir in exits) {
       let end = exits[endDir];
       let route = [{
-        room: room.name
+        room: this.name
       }, {
         room: end
       }];
-      let path = room.getPath(route, 0, 'pathStart', undefined, true);
+      let path = this.getPath(route, 0, 'pathStart', undefined, true);
       for (let pos of path) {
         costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
       }
-      room.setMemoryCostMatrix(costMatrixBase);
+      this.setMemoryCostMatrix(costMatrixBase);
     }
     return costMatrixBase;
   }
@@ -363,15 +363,15 @@ let buildCostMatrix = function(room) {
       let route = [{
         room: start
       }, {
-        room: room.name
+        room: this.name
       }, {
         room: end
       }];
-      let path = room.getPath(route, 1, undefined, undefined, true);
+      let path = this.getPath(route, 1, undefined, undefined, true);
       for (let pos of path) {
         costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
       }
-      room.setMemoryCostMatrix(costMatrixBase);
+      this.setMemoryCostMatrix(costMatrixBase);
     }
   }
   return costMatrixBase;
@@ -382,7 +382,7 @@ Room.prototype.setup = function() {
   this.log('costmatrix.setup called');
   this.memory.controllerLevel = {};
 
-  let costMatrixBase = buildCostMatrix(this);
+  let costMatrixBase = this.buildCostMatrix();
   //  this.memory.position = {
   //    creep: {}
   //  };

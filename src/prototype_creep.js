@@ -293,11 +293,11 @@ Creep.prototype.killPrevious = function() {
       this.log('kill other: me: ' + this.ticksToLive + ' they: ' + previous.ticksToLive);
       previous.suicide();
     }
-    this.log(
-      'Kill previous' + ' ' +
-      this.memory.role + ' ' + range + ' ' +
-      JSON.stringify(previous)
-    );
+    // this.log(
+    //   'Kill previous' + ' ' +
+    //   this.memory.role + ' ' + range + ' ' +
+    //   JSON.stringify(previous)
+    // );
     //    throw Error();
   }
 };

@@ -38,6 +38,34 @@ Room.prototype.initSetMinerals = function() {
   }
 };
 
+Room.prototype.initSetStorageAndPathStart = function() {
+  let costMatrix = this.getMemoryCostMatrix();
+  let storagePos = this.memory.position.creep[this.controller.id].findNearPosition().next().value;
+  this.memory.position.structure.storage.push(storagePos);
+  // TODO should also be done for the other structures
+  costMatrix.set(storagePos.x, storagePos.y, config.layout.structureAvoid);
+  this.setMemoryCostMatrix(costMatrix);
+
+  this.memory.position.creep.pathStart = storagePos.findNearPosition().next().value;
+
+  let route = [{
+    room: this.name
+  }];
+  let pathUpgrader = this.getPath(route, 0, 'pathStart', this.controller.id, true);
+  // TODO exclude the last position (creepAvoid) in all paths
+  for (let pos of pathUpgrader) {
+    if (this.memory.position.creep[this.controller.id].isEqualTo(pos.x, pos.y)) {
+      continue;
+    }
+    costMatrix.set(pos.x, pos.y, config.layout.pathAvoid);
+  }
+  this.setMemoryCostMatrix(costMatrix);
+  return {
+    storagePos: storagePos,
+    route: route
+  };
+};
+
 Room.prototype.updatePosition = function() {
   this.log('Update position');
   cache.rooms[this.name] = {};
@@ -67,26 +95,7 @@ Room.prototype.updatePosition = function() {
   this.initSetMinerals();
 
   if (this.controller && this.controller.my) {
-    let storagePos = this.memory.position.creep[this.controller.id].findNearPosition().next().value;
-    this.memory.position.structure.storage.push(storagePos);
-    // TODO should also be done for the other structures
-    costMatrixBase.set(storagePos.x, storagePos.y, config.layout.structureAvoid);
-    this.setMemoryCostMatrix(costMatrixBase);
-
-    this.memory.position.creep.pathStart = storagePos.findNearPosition().next().value;
-
-    let route = [{
-      room: this.name
-    }];
-    let pathUpgrader = this.getPath(route, 0, 'pathStart', this.controller.id, true);
-    // TODO exclude the last position (creepAvoid) in all paths
-    for (let pos of pathUpgrader) {
-      if (this.memory.position.creep[this.controller.id].isEqualTo(pos.x, pos.y)) {
-        continue;
-      }
-      costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
-    }
-    this.setMemoryCostMatrix(costMatrixBase);
+    let startPos = this.initSetStorageAndPathStart();
 
     let sources = this.find(FIND_SOURCES);
     for (let source of sources) {
@@ -108,7 +117,7 @@ Room.prototype.updatePosition = function() {
       this.setMemoryCostMatrix(costMatrixBase);
     }
 
-    this.setFillerArea(storagePos, costMatrixBase, route);
+    this.setFillerArea(startPos.storagePos, costMatrixBase, startPos.route);
   }
 
   this.setMemoryCostMatrix(costMatrixBase);

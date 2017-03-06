@@ -66,6 +66,42 @@ Room.prototype.initSetStorageAndPathStart = function() {
   };
 };
 
+Room.prototype.setFillerArea = function(storagePos, route) {
+  let costMatrix = this.getMemoryCostMatrix();
+  let fillerPosIterator = storagePos.findNearPosition();
+  for (let fillerPos of fillerPosIterator) {
+    this.memory.position.creep.filler = fillerPos;
+
+    // TODO Bug in E37N35 path was different compared to the fillerPos. costMatrix should be resetted, too
+    this.deleteMemoryPath('pathStart-filler');
+
+    let pathFiller = this.getPath(route, 0, 'pathStart', 'filler', true);
+    for (let pos of pathFiller) {
+      costMatrix.set(pos.x, pos.y, config.layout.pathAvoid);
+    }
+    this.setMemoryCostMatrix(costMatrix);
+
+    let linkStoragePosIterator = fillerPos.findNearPosition();
+    for (let linkStoragePos of linkStoragePosIterator) {
+      this.memory.position.structure.link.unshift(linkStoragePos);
+
+      let powerSpawnPosIterator = fillerPos.findNearPosition();
+      for (let powerSpawnPos of powerSpawnPosIterator) {
+        this.memory.position.structure.powerSpawn.push(powerSpawnPos);
+
+        let towerPosIterator = fillerPos.findNearPosition();
+        for (let towerPos of towerPosIterator) {
+          this.memory.position.structure.tower.push(towerPos);
+
+          costMatrix.set(fillerPos.x, fillerPos.x, config.layout.creepAvoid);
+          this.setMemoryCostMatrix(costMatrix);
+          return;
+        }
+      }
+    }
+  }
+};
+
 Room.prototype.updatePosition = function() {
   cache.rooms[this.name] = {};
   delete this.memory.routing;
@@ -97,6 +133,7 @@ Room.prototype.updatePosition = function() {
     let startPos = this.initSetStorageAndPathStart();
 
     let sources = this.find(FIND_SOURCES);
+    let costMatrixBase = this.getCostMatrix();
     for (let source of sources) {
       let route = [{
         room: this.name
@@ -116,11 +153,8 @@ Room.prototype.updatePosition = function() {
       this.setMemoryCostMatrix(costMatrixBase);
     }
 
-    this.setFillerArea(startPos.storagePos, costMatrixBase, startPos.route);
+    this.setFillerArea(startPos.storagePos, startPos.route);
   }
-
-  this.setMemoryCostMatrix(costMatrixBase);
-  return costMatrixBase;
 };
 
 Room.prototype.setTowerFiller = function() {

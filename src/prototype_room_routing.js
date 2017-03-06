@@ -24,42 +24,6 @@ Room.isRoomUnderAttack = function(roomName) {
   return true;
 };
 
-Room.prototype.setFillerArea = function(storagePos, costMatrixBase, route) {
-  let fillerPosIterator = storagePos.findNearPosition();
-  for (let fillerPos of fillerPosIterator) {
-    this.memory.position.creep.filler = fillerPos;
-
-    // TODO Bug in E37N35 path was different compared to the fillerPos. costMatrix should be resetted, too
-    this.deleteMemoryPath('pathStart-filler');
-
-    let pathFiller = this.getPath(route, 0, 'pathStart', 'filler', true);
-    for (let pos of pathFiller) {
-      costMatrixBase.set(pos.x, pos.y, config.layout.pathAvoid);
-    }
-    this.setMemoryCostMatrix(costMatrixBase);
-
-    let linkStoragePosIterator = fillerPos.findNearPosition();
-    for (let linkStoragePos of linkStoragePosIterator) {
-      this.memory.position.structure.link.unshift(linkStoragePos);
-
-      let powerSpawnPosIterator = fillerPos.findNearPosition();
-      for (let powerSpawnPos of powerSpawnPosIterator) {
-        this.memory.position.structure.powerSpawn.push(powerSpawnPos);
-
-        let towerPosIterator = fillerPos.findNearPosition();
-        for (let towerPos of towerPosIterator) {
-          this.memory.position.structure.tower.push(towerPos);
-
-          costMatrixBase.set(fillerPos.x, fillerPos.x, config.layout.creepAvoid);
-          this.setMemoryCostMatrix(costMatrixBase);
-
-          return;
-        }
-      }
-    }
-  }
-};
-
 Room.prototype.getCreepPositionForId = function(to) {
   if (this.memory.position && this.memory.position.creep && this.memory.position.creep[to]) {
     let pos = this.memory.position.creep[to];

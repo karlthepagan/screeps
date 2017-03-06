@@ -66,7 +66,7 @@ Room.prototype.updatePosition = function() {
   this.initSetSources();
   this.initSetMinerals();
 
-  if (this.controller) {
+  if (this.controller && this.controller.my) {
     let storagePos = this.memory.position.creep[this.controller.id].findNearPosition().next().value;
     this.memory.position.structure.storage.push(storagePos);
     // TODO should also be done for the other structures
